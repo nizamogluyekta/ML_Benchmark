@@ -1,6 +1,7 @@
 """Helpers shared across model implementations."""
 from __future__ import annotations
 
+import math
 from typing import Iterable, List, Sequence, Tuple
 
 import numpy as np
@@ -27,8 +28,10 @@ def regression_metrics(dataset: str, model_name: str, y_true: Iterable[float], y
   y_pred = np.asarray(y_pred)
   if not y_true.size:
     raise ValueError("Cannot compute metrics on empty targets")
+  mse = mean_squared_error(y_true, y_pred)
+  rmse = math.sqrt(mse)
   return [
-    MetricResult(dataset=dataset, model=model_name, metric="rmse", value=float(mean_squared_error(y_true, y_pred, squared=False))),
+    MetricResult(dataset=dataset, model=model_name, metric="rmse", value=float(rmse)),
     MetricResult(dataset=dataset, model=model_name, metric="mae", value=float(mean_absolute_error(y_true, y_pred))),
     MetricResult(dataset=dataset, model=model_name, metric="r2", value=float(r2_score(y_true, y_pred))),
   ]

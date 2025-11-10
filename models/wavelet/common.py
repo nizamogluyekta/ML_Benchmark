@@ -67,7 +67,7 @@ def _build_preprocessor(numeric: List[str], categorical: List[str]) -> ColumnTra
   if numeric:
     transformers.append(("num", Pipeline([("scaler", StandardScaler()), ("power", PowerTransformer())]), numeric))
   if categorical:
-    transformers.append(("cat", Pipeline([("onehot", OneHotEncoder(handle_unknown="ignore", sparse=False))]), categorical))
+    transformers.append(("cat", Pipeline([("onehot", OneHotEncoder(handle_unknown="ignore"))]), categorical))
   if not transformers:
     raise ValueError("No features available for wavelet preprocessing")
   return ColumnTransformer(transformers)

@@ -1,0 +1,33 @@
+description: Solar radiation forecasting dataset derived from the VeriBilimi project.
+raw_path: data/raw/solar_reference
+source_files:
+  train: data/raw/solar_reference/training_data.csv
+  test: data/raw/solar_reference/testing_data.csv
+target: TOPLAM_GUNLUK_GUNES_RADYASYONU
+datetime: DATE_KEY
+features:
+- GUNLUK_GUNESLENME_SURESI_saat
+- ORTALAMA_GUNLUK_BASINC_hPa
+- ORTALAMA_GUNLUK_NEM_%
+- ORTALAMA_GUNLUK_RUZGAR_HIZI
+- ORTALAMA_GUNLUK_SICAKLIK_C
+- TOPLAM_GUNLUK_YAGIS_mm
+- "ORTALAMA_GUNLUK_PM10_\xB5g/m3"
+- "ORTALAMA_GUNLUK_PM25_\xB5g/m3"
+categorical_features:
+- EN_SIK_GUNLUK_RUZGAR_YONU
+split:
+  method: predefined
+feature_engineering:
+  seasonal: true
+  interactions: true
+  wavelet: true
+  scaling: standard
+wavelet:
+  wavelet: db4
+  level: 3
+notes: 'Copied from VeriBilimi/training_data.csv and testing_data.csv.
+
+  The categorical wind direction feature is used inside the wavelet pipelines.
+
+  '
