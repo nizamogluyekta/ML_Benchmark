@@ -103,5 +103,7 @@ def summarize_wavelet_details(df: pd.DataFrame, target_column: str) -> Dict[str,
   for col in df.columns:
     if not col.startswith(prefix):
       continue
-    stats[f"{col[len(prefix):]}_mean_abs"] = float(df[col].abs().mean())
+    suffix = col[len(prefix):]
+    label = suffix if suffix.startswith("d") else f"d{suffix}"
+    stats[label] = float(df[col].abs().mean())
   return stats

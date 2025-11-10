@@ -1,7 +1,7 @@
 """XGBoost baseline model."""
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 try:
   from xgboost import XGBRegressor
@@ -11,8 +11,7 @@ except ImportError as exc:  # pragma: no cover - optional dependency
 else:
   XGB_IMPORT_ERROR = None
 
-from models.base import extract_features_and_target, regression_metrics
-from utils.reporting import MetricResult
+from models.base import TrainingResult, build_predictions_frame, extract_features_and_target, regression_metrics
 
 
 MODEL_ID = "baseline.xgboost"
@@ -37,7 +36,7 @@ def build_model(hyperparams: Dict[str, Any] | None = None):
   return XGBRegressor(**params)
 
 
-def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) -> List[MetricResult]:
+def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) -> TrainingResult:
   features = dataset_cfg.get("features")
   target = dataset_cfg.get("target")
   if not features or not target:
@@ -46,4 +45,6 @@ def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) ->
   model = build_model(dataset_cfg.get("xgb_params"))
   model.fit(X_train, y_train)
   predictions = model.predict(X_test)
-  return regression_metrics(dataset_name, MODEL_ID, y_test, predictions)
+  metrics = regression_metrics(dataset_name, MODEL_ID, y_test, predictions)
+  predictions_df = build_predictions_frame(splits, dataset_cfg, predictions)
+  return TrainingResult(metrics=metrics, predictions=predictions_df)

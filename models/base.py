@@ -2,12 +2,21 @@
 from __future__ import annotations
 
 import math
-from typing import Iterable, List, Sequence, Tuple
+from dataclasses import dataclass
+from typing import Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
+import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from utils.reporting import MetricResult
+from utils.reporting import MetricResult, predictions_to_frame
+
+
+@dataclass
+class TrainingResult:
+  metrics: List[MetricResult]
+  predictions: Optional[pd.DataFrame] = None
+  extra_sections: Optional[List[Tuple[str, str]]] = None
 
 
 def extract_features_and_target(splits, features: Sequence[str], target: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -31,7 +40,13 @@ def regression_metrics(dataset: str, model_name: str, y_true: Iterable[float], y
   mse = mean_squared_error(y_true, y_pred)
   rmse = math.sqrt(mse)
   return [
+    MetricResult(dataset=dataset, model=model_name, metric="mse", value=float(mse)),
     MetricResult(dataset=dataset, model=model_name, metric="rmse", value=float(rmse)),
     MetricResult(dataset=dataset, model=model_name, metric="mae", value=float(mean_absolute_error(y_true, y_pred))),
     MetricResult(dataset=dataset, model=model_name, metric="r2", value=float(r2_score(y_true, y_pred))),
   ]
+
+
+def build_predictions_frame(splits, dataset_cfg, predictions) -> pd.DataFrame:
+  test_df = splits.test
+  return predictions_to_frame(test_df, predictions, dataset_cfg)

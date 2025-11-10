@@ -16,7 +16,15 @@ if str(PROJECT_ROOT) not in sys.path:
 import pandas as pd
 import yaml
 
-from utils.reporting import MetricResult, save_metrics_csv, save_metrics_json, report_placeholder
+from models.base import TrainingResult
+from utils.reporting import (
+  DEFAULT_ERROR_THRESHOLD,
+  MetricResult,
+  generate_detailed_report,
+  report_placeholder,
+  save_metrics_csv,
+  save_metrics_json,
+)
 
 DATA_DIR = PROJECT_ROOT / "data"
 PROCESSED_DIR = DATA_DIR / "processed"
@@ -70,7 +78,16 @@ def run_training(dataset: str, model_id: str, reports_dir: Path = DEFAULT_REPORT
   model_reports_dir = reports_dir / dataset / model_id.replace(".", "_")
   model_reports_dir.mkdir(parents=True, exist_ok=True)
   logger.info("Training %s on dataset %s", model_id, dataset)
-  metrics = train_fn(dataset_name=dataset, dataset_cfg=dataset_cfg, splits=splits, output_dir=model_reports_dir)
+  result = train_fn(dataset_name=dataset, dataset_cfg=dataset_cfg, splits=splits, output_dir=model_reports_dir)
+  if isinstance(result, TrainingResult):
+    metrics = result.metrics
+    predictions_df = result.predictions
+    extra_sections = result.extra_sections
+  else:
+    metrics = result
+    predictions_df = None
+    extra_sections = None
+
   if not metrics:
     logger.warning("Model %s returned no metrics", model_id)
     return []
@@ -78,6 +95,22 @@ def run_training(dataset: str, model_id: str, reports_dir: Path = DEFAULT_REPORT
   metrics_json = model_reports_dir / "metrics.json"
   save_metrics_csv(metrics, metrics_csv)
   save_metrics_json(metrics, metrics_json)
+  if predictions_df is not None:
+    predictions_path = model_reports_dir / "predictions.csv"
+    predictions_df.to_csv(predictions_path, index=False)
+    report_cfg = dataset_cfg.get("reporting", {})
+    error_threshold = report_cfg.get("error_band", DEFAULT_ERROR_THRESHOLD)
+    file_prefix = model_id.replace(".", "_")
+    generate_detailed_report(
+      predictions_df=predictions_df,
+      metrics=metrics,
+      output_dir=model_reports_dir,
+      model_label=f"{dataset}:{model_id}",
+      file_prefix=file_prefix,
+      error_threshold=error_threshold,
+      extra_sections=extra_sections,
+    )
+
   report_placeholder(model_reports_dir, dataset=dataset, model=model_id)
   return metrics
 

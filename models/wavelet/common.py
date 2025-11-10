@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -99,3 +99,12 @@ def prepare_wavelet_data(splits, dataset_cfg: Dict[str, Any]) -> WaveletPrepared
     categorical_features=categorical,
     wavelet_stats=stats,
   )
+
+
+def format_wavelet_stats_markdown(stats: Dict[str, float]) -> Optional[str]:
+  if not stats:
+    return None
+  lines = ["| Coefficient | Mean Absolute Value |", "| --- | --- |"]
+  for key in sorted(stats.keys()):
+    lines.append(f"| {key} | {stats[key]:.6f} |")
+  return "\n".join(lines)

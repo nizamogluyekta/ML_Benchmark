@@ -4,3 +4,5 @@ PyYAML
 scikit-learn
 pywavelets
 xgboost
+matplotlib
+seaborn

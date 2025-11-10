@@ -28,6 +28,8 @@ solar_reference:
   wavelet:
     wavelet: db4
     level: 3
+  reporting:
+    error_band: 0.05
   notes: |
     Copied from VeriBilimi/training_data.csv and testing_data.csv.
     The categorical wind direction feature is used inside the wavelet pipelines.
