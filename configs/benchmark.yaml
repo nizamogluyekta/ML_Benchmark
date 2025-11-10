@@ -1,0 +1,20 @@
+# Global benchmark configuration
+run_name: dev_sanity
+random_seed: 42
+parallelism: 1
+error_band: 0.05
+preprocess:
+  force: false
+models:
+  - baseline.svm
+  - baseline.random_forest
+  - baseline.xgboost
+  - neural.mlp
+  - wavelet.svm
+  - wavelet.random_forest
+  - wavelet.xgboost
+datasets:
+  - solar_reference
+reporting:
+  base_dir: reports
+  summary_file: benchmark_summary.csv
