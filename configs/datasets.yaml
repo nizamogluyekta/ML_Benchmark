@@ -1,21 +1,33 @@
 # Dataset configurations for the ML benchmark framework
 solar_reference:
-  raw_path: data/raw/solar_reference.csv
-  target: solar_intensity
-  datetime: timestamp
+  description: Solar radiation forecasting dataset derived from the VeriBilimi project.
+  raw_path: data/raw/solar_reference
+  source_files:
+    train: data/raw/solar_reference/training_data.csv
+    test: data/raw/solar_reference/testing_data.csv
+  target: TOPLAM_GUNLUK_GUNES_RADYASYONU
+  datetime: DATE_KEY
   features:
-    - temperature
-    - humidity
-    - wind_speed
-    - pressure
+    - GUNLUK_GUNESLENME_SURESI_saat
+    - ORTALAMA_GUNLUK_BASINC_hPa
+    - ORTALAMA_GUNLUK_NEM_%
+    - ORTALAMA_GUNLUK_RUZGAR_HIZI
+    - ORTALAMA_GUNLUK_SICAKLIK_C
+    - TOPLAM_GUNLUK_YAGIS_mm
+    - ORTALAMA_GUNLUK_PM10_µg/m3
+    - ORTALAMA_GUNLUK_PM25_µg/m3
+  categorical_features:
+    - EN_SIK_GUNLUK_RUZGAR_YONU
   split:
-    method: time
-    train_ratio: 0.8
+    method: predefined
   feature_engineering:
     seasonal: true
     interactions: true
-    wavelet: false
+    wavelet: true
     scaling: standard
+  wavelet:
+    wavelet: db4
+    level: 3
   notes: |
-    This entry is an example placeholder. Update the raw path and feature names
-    to match the actual dataset before running the preprocess step.
+    Copied from VeriBilimi/training_data.csv and testing_data.csv.
+    The categorical wind direction feature is used inside the wavelet pipelines.

@@ -4,13 +4,16 @@ from __future__ import annotations
 import argparse
 import csv
 import logging
+import shutil
 from pathlib import Path
 from typing import Any, Dict
+
 import yaml
 
-DATA_DIR = Path("data")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = PROJECT_ROOT / "data"
 PROCESSED_DIR = DATA_DIR / "processed"
-CONFIG_PATH = Path("configs/datasets.yaml")
+CONFIG_PATH = PROJECT_ROOT / "configs/datasets.yaml"
 
 
 logger = logging.getLogger(__name__)
@@ -19,6 +22,37 @@ logger = logging.getLogger(__name__)
 def load_dataset_configs(config_path: Path = CONFIG_PATH) -> Dict[str, Dict[str, Any]]:
   with config_path.open() as handle:
     return yaml.safe_load(handle) or {}
+
+
+def _copy_split_file(src: Path, dest: Path, force: bool) -> None:
+  if dest.exists() and not force:
+    return
+  if not src.exists():
+    raise FileNotFoundError(f"Source split not found: {src}")
+  dest.parent.mkdir(parents=True, exist_ok=True)
+  shutil.copy2(src, dest)
+
+
+def copy_source_splits(dataset_name: str, dataset_cfg: Dict[str, Any], force: bool = False) -> bool:
+  source_files = dataset_cfg.get("source_files") or {}
+  if not source_files:
+    return False
+
+  processed_dir = PROCESSED_DIR / dataset_name
+  processed_dir.mkdir(parents=True, exist_ok=True)
+
+  copied = False
+  for key, filename in ("train", "training.csv"), ("test", "testing.csv"):
+    src_value = source_files.get(key)
+    if not src_value:
+      continue
+    src_path = Path(src_value)
+    if not src_path.is_absolute():
+      src_path = PROJECT_ROOT / src_path
+    dest_path = processed_dir / filename
+    _copy_split_file(src_path, dest_path, force)
+    copied = True
+  return copied
 
 
 def write_placeholder_split(dataset_name: str, feature_list: Any, target: str, force: bool = False) -> None:
@@ -47,7 +81,9 @@ def persist_metadata(dataset_name: str, dataset_cfg: Dict[str, Any]) -> None:
 def preprocess_dataset(dataset_name: str, dataset_cfg: Dict[str, Any], force: bool = False) -> Path:
   logger.info("Preparing dataset %s", dataset_name)
   persist_metadata(dataset_name, dataset_cfg)
-  write_placeholder_split(dataset_name, dataset_cfg.get("features"), dataset_cfg.get("target", "target"), force=force)
+  copied = copy_source_splits(dataset_name, dataset_cfg, force=force)
+  if not copied:
+    write_placeholder_split(dataset_name, dataset_cfg.get("features"), dataset_cfg.get("target", "target"), force=force)
   return PROCESSED_DIR / dataset_name
 
 

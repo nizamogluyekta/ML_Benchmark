@@ -9,19 +9,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
-if str(ROOT_DIR) not in sys.path:
-  sys.path.insert(0, str(ROOT_DIR))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+  sys.path.insert(0, str(PROJECT_ROOT))
 
 import pandas as pd
 import yaml
 
 from utils.reporting import MetricResult, save_metrics_csv, save_metrics_json, report_placeholder
 
-DATA_DIR = Path("data")
+DATA_DIR = PROJECT_ROOT / "data"
 PROCESSED_DIR = DATA_DIR / "processed"
-CONFIG_PATH = Path("configs/datasets.yaml")
-DEFAULT_REPORTS_DIR = Path("reports")
+CONFIG_PATH = PROJECT_ROOT / "configs/datasets.yaml"
+DEFAULT_REPORTS_DIR = PROJECT_ROOT / "reports"
 
 
 logger = logging.getLogger(__name__)

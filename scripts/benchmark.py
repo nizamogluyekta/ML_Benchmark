@@ -17,8 +17,8 @@ from scripts.preprocess import run as preprocess_run
 from scripts.train_model import run_training
 from utils.reporting import MetricResult, save_metrics_csv
 
-BENCHMARK_CONFIG = Path("configs/benchmark.yaml")
-DEFAULT_REPORTS_DIR = Path("reports")
+BENCHMARK_CONFIG = ROOT_DIR / "configs/benchmark.yaml"
+DEFAULT_REPORTS_DIR = ROOT_DIR / "reports"
 
 
 logger = logging.getLogger(__name__)

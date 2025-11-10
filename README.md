@@ -12,6 +12,7 @@ Reusable framework for running comparable experiments across multiple ML model f
 
 ## Quickstart
 1. Define your datasets in `configs/datasets.yaml` (update raw paths, features, and targets).
+   - Example: `solar_reference` already points to the copied VeriBilimi splits under `data/raw/solar_reference/`.
 2. Adjust `configs/benchmark.yaml` with the datasets/models you want to run.
 3. Preprocess data (creates placeholder splits until real logic is added):
    ```bash
@@ -30,3 +31,4 @@ Reusable framework for running comparable experiments across multiple ML model f
 - Model modules currently expect processed CSVs with numeric columns; extend the preprocessing step to apply real feature engineering.
 - Wavelet models reuse baseline logics for now, keeping a clear hook for custom feature augmentation.
 - Utilities and configs were scaffolded from the `VeriBilimi` project plan and can be iteratively refined as datasets and requirements evolve.
+- The legacy VeriBilimi wavelet feature engineering (seasonal/interactions + DWT coefficients) now lives under `utils/wavelet.py` and powers the `models/wavelet/*` implementations.
