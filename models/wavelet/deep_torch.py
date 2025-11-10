@@ -18,11 +18,13 @@ else:
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+import logging
 
 from models.base import TrainingResult, build_predictions_frame, regression_metrics
 from models.wavelet.common import format_wavelet_stats_markdown, prepare_wavelet_data
 
 MODEL_ID = "wavelet.deep_torch"
+logger = logging.getLogger(__name__)
 
 
 def _to_tensor(array: np.ndarray) -> torch.Tensor:
@@ -33,12 +35,14 @@ def build_model(input_dim: int, hyperparams: Dict[str, Any] | None = None):
   if torch is None:
     raise RuntimeError("PyTorch is not installed") from TORCH_IMPORT_ERROR
   params = {
-    "hidden_dims": (512, 256, 128, 64),
-    "dropout": 0.15,
+    "hidden_dims": (256, 128, 64),
+    "dropout": 0.1,
     "lr": 8e-4,
-    "epochs": 350,
+    "epochs": 150,
     "batch_size": 64,
     "weight_decay": 5e-5,
+    "patience": 15,
+    "log_every": 20,
   }
   if hyperparams:
     params.update(hyperparams)
@@ -66,7 +70,7 @@ def _train_loop(model: nn.Module, train_loader: DataLoader, val_data, params: Di
   patience = params.get("patience", 20)
   wait = 0
 
-  for _ in range(params["epochs"]):
+  for epoch in range(1, params["epochs"] + 1):
     model.train()
     for batch_X, batch_y in train_loader:
       batch_X = batch_X.to(device)
@@ -79,6 +83,8 @@ def _train_loop(model: nn.Module, train_loader: DataLoader, val_data, params: Di
     model.eval()
     with torch.no_grad():
       val_loss = criterion(model(X_val).squeeze(-1), y_val).item()
+    if epoch % params["log_every"] == 0:
+      logger.info("[wavelet.deep_torch] epoch %d/%d val_loss=%.6f", epoch, params["epochs"], val_loss)
     if val_loss + 1e-6 < best_val:
       best_val = val_loss
       best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}

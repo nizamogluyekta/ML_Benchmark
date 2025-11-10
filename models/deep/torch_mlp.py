@@ -18,10 +18,12 @@ else:
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+import logging
 
 from models.base import TrainingResult, build_predictions_frame, extract_features_and_target, regression_metrics
 
 MODEL_ID = "deep.torch_mlp"
+logger = logging.getLogger(__name__)
 
 
 def _to_tensor(array: np.ndarray) -> torch.Tensor:
@@ -32,12 +34,13 @@ def build_model(input_dim: int, hyperparams: Dict[str, Any] | None = None) -> Tu
   if torch is None:
     raise RuntimeError("PyTorch is not installed") from TORCH_IMPORT_ERROR
   params = {
-    "hidden_dims": (256, 128, 64),
-    "dropout": 0.1,
+    "hidden_dims": (128, 64),
+    "dropout": 0.05,
     "lr": 1e-3,
-    "epochs": 300,
+    "epochs": 120,
     "batch_size": 64,
     "weight_decay": 1e-4,
+    "log_every": 20,
   }
   if hyperparams:
     params.update(hyperparams)
@@ -63,7 +66,7 @@ def _train_loop(model: nn.Module, train_loader: DataLoader, val_data: Tuple[torc
   X_val, y_val = (tensor.to(device) for tensor in val_data)
 
   model.train()
-  for _ in range(params["epochs"]):
+  for epoch in range(1, params["epochs"] + 1):
     for batch_X, batch_y in train_loader:
       batch_X = batch_X.to(device)
       batch_y = batch_y.to(device)
@@ -75,7 +78,9 @@ def _train_loop(model: nn.Module, train_loader: DataLoader, val_data: Tuple[torc
     # simple early stop hook (not implemented yet, placeholder for extension)
     with torch.no_grad():
       model.eval()
-      _ = criterion(model(X_val).squeeze(-1), y_val)
+      val_loss = criterion(model(X_val).squeeze(-1), y_val).item()
+      if epoch % params["log_every"] == 0:
+        logger.info("[deep.torch_mlp] epoch %d/%d val_loss=%.6f", epoch, params["epochs"], val_loss)
       model.train()
 
 
