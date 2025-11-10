@@ -78,7 +78,13 @@ def run_training(dataset: str, model_id: str, reports_dir: Path = DEFAULT_REPORT
   model_reports_dir = reports_dir / dataset / model_id.replace(".", "_")
   model_reports_dir.mkdir(parents=True, exist_ok=True)
   logger.info("Training %s on dataset %s", model_id, dataset)
-  result = train_fn(dataset_name=dataset, dataset_cfg=dataset_cfg, splits=splits, output_dir=model_reports_dir)
+  try:
+    result = train_fn(dataset_name=dataset, dataset_cfg=dataset_cfg, splits=splits, output_dir=model_reports_dir)
+  except (RuntimeError, ImportError) as exc:
+    error_file = model_reports_dir / "ERROR.txt"
+    error_file.write_text(str(exc))
+    logger.error("Model %s failed: %s", model_id, exc)
+    return []
   if isinstance(result, TrainingResult):
     metrics = result.metrics
     predictions_df = result.predictions

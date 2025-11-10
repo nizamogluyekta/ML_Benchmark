@@ -6,3 +6,5 @@ pywavelets
 xgboost
 matplotlib
 seaborn
+lightgbm
+torch
