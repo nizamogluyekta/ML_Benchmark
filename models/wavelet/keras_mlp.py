@@ -11,8 +11,6 @@ except ImportError as exc:  # pragma: no cover
 else:  # pragma: no cover
   TF_IMPORT_ERROR = None
 
-from sklearn.preprocessing import StandardScaler
-
 from models.base import TrainingResult, build_predictions_frame, regression_metrics
 from models.wavelet.common import format_wavelet_stats_markdown, prepare_wavelet_data
 
@@ -45,9 +43,9 @@ def build_model(input_dim: int, hyperparams: Dict[str, Any] | None = None):
 
 def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) -> TrainingResult:
   prepared = prepare_wavelet_data(splits, dataset_cfg)
-  scaler = StandardScaler()
-  X_train = scaler.fit_transform(prepared.X_train)
-  X_test = scaler.transform(prepared.X_test)
+  preprocessor = prepared.preprocessor
+  X_train = preprocessor.fit_transform(prepared.X_train, prepared.y_train)
+  X_test = preprocessor.transform(prepared.X_test)
 
   model, params = build_model(X_train.shape[1], dataset_cfg.get("wavelet_keras_params"))
   callbacks = []

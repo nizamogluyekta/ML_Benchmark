@@ -5,7 +5,6 @@ from typing import Any, Dict
 
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 
 from models.base import TrainingResult, build_predictions_frame, regression_metrics
 from models.wavelet.common import format_wavelet_stats_markdown, prepare_wavelet_data
@@ -13,7 +12,7 @@ from models.wavelet.common import format_wavelet_stats_markdown, prepare_wavelet
 MODEL_ID = "wavelet.deep_sklearn"
 
 
-def build_model(hyperparams: Dict[str, Any] | None = None) -> Pipeline:
+def build_model(preprocessor, hyperparams: Dict[str, Any] | None = None) -> Pipeline:
   params = {
     "hidden_layer_sizes": (512, 256, 128, 64),
     "activation": "relu",
@@ -27,14 +26,14 @@ def build_model(hyperparams: Dict[str, Any] | None = None) -> Pipeline:
   if hyperparams:
     params.update(hyperparams)
   return Pipeline([
-    ("scaler", StandardScaler()),
+    ("pre", preprocessor),
     ("mlp", MLPRegressor(**params)),
   ])
 
 
 def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) -> TrainingResult:
   prepared = prepare_wavelet_data(splits, dataset_cfg)
-  pipeline = build_model(dataset_cfg.get("wavelet_deep_sklearn_params"))
+  pipeline = build_model(prepared.preprocessor, dataset_cfg.get("wavelet_deep_sklearn_params"))
   pipeline.fit(prepared.X_train, prepared.y_train)
   predictions = pipeline.predict(prepared.X_test)
   metrics = regression_metrics(dataset_name, MODEL_ID, prepared.y_test, predictions)
