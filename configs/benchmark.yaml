@@ -11,13 +11,11 @@ models:
   - baseline.xgboost
   - baseline.lightgbm
   - neural.mlp
-  - deep.torch_mlp
   - wavelet.svm
   - wavelet.random_forest
   - wavelet.xgboost
   - wavelet.lightgbm
   - wavelet.neural
-  - wavelet.deep_torch
 datasets:
   - solar_reference
 reporting:
