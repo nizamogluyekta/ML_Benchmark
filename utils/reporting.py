@@ -41,6 +41,12 @@ def ensure_dir(path: Path) -> Path:
   return path
 
 
+def _fmt_metric(value: Optional[float]) -> str:
+  if value is None or (isinstance(value, float) and math.isnan(value)):
+    return "-"
+  return f"{value:.4f}"
+
+
 def save_metrics_csv(metrics: Iterable[MetricResult], output_file: Path) -> None:
   """Write metrics to disk in a normalized long format."""
   ensure_dir(output_file.parent)
@@ -266,6 +272,16 @@ def generate_performance_report(
   mae = metrics.get("mae")
   r2 = metrics.get("r2")
   mse = metrics.get("mse", rmse ** 2 if rmse is not None else None)
+  mape = metrics.get("mape")
+  smape = metrics.get("smape")
+  median_ae = metrics.get("median_ae")
+  p90_ae = metrics.get("p90_ae")
+  bias = metrics.get("bias")
+  coverage5 = metrics.get("coverage_within_5pct")
+  coverage10 = metrics.get("coverage_within_10pct")
+  rmsle = metrics.get("rmsle")
+  train_time = metrics.get("train_time_sec")
+  predict_time = metrics.get("predict_time_sec")
 
   monthly_error = (
     enriched_df.groupby(enriched_df["DATE_KEY"].dt.month)["Percent_Error"].agg(["mean", "min", "max"]).reset_index()
@@ -300,8 +316,48 @@ def generate_performance_report(
     report_lines.append(f"- Mean Absolute Error (MAE): {mae:.4f}")
   if r2 is not None:
     report_lines.append(f"- R² Score: {r2:.4f}")
+  if mape is not None:
+    report_lines.append(f"- Mean Absolute Percentage Error (MAPE): {mape:.2f}%")
+  if smape is not None:
+    report_lines.append(f"- Symmetric MAPE: {smape:.2f}%")
+  if median_ae is not None:
+    report_lines.append(f"- Median Absolute Error: {median_ae:.4f}")
+  if p90_ae is not None:
+    report_lines.append(f"- 90th Percentile Absolute Error: {p90_ae:.4f}")
+  if rmsle is not None:
+    report_lines.append(f"- Root Mean Squared Log Error (RMSLE): {rmsle:.4f}")
+  if bias is not None:
+    report_lines.append(f"- Mean Bias (Predicted - Actual): {bias:.4f}")
+  if coverage5 is not None:
+    report_lines.append(f"- Coverage within 5%: {coverage5:.2f}%")
+  if coverage10 is not None:
+    report_lines.append(f"- Coverage within 10%: {coverage10:.2f}%")
   report_lines.append(f"- Predictions within threshold ({threshold_pct:.1f}%): {within_pct:.2f}%")
+  if train_time is not None:
+    report_lines.append(f"- Training Time: {train_time:.3f}s")
+  if predict_time is not None:
+    report_lines.append(f"- Prediction Time: {predict_time:.3f}s")
   report_lines.append("")
+
+  extended = [
+    ("MAPE (%)", mape),
+    ("sMAPE (%)", smape),
+    ("Median AE", median_ae),
+    ("P90 AE", p90_ae),
+    ("Bias", bias),
+    ("Coverage ≤5%", coverage5),
+    ("Coverage ≤10%", coverage10),
+    ("RMSLE", rmsle),
+    ("Train Time (s)", train_time),
+    ("Predict Time (s)", predict_time),
+  ]
+  if any(val is not None for _, val in extended):
+    report_lines.append("### Extended Metrics")
+    report_lines.append("| Metric | Value |")
+    report_lines.append("| --- | --- |")
+    for label, val in extended:
+      report_lines.append(f"| {label} | {_fmt_metric(val)} |")
+    report_lines.append("")
 
   report_lines.append("## Monthly Error Profile")
   report_lines.append(monthly_error.to_string(index=False))

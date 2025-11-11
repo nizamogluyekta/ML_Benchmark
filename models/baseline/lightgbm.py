@@ -11,7 +11,7 @@ except ImportError as exc:  # pragma: no cover - optional dependency
 else:
   LGB_IMPORT_ERROR = None
 
-from models.base import TrainingResult, build_predictions_frame, regression_metrics
+from models.base import TrainingResult, build_predictions_frame, regression_metrics, timed_fit_predict, timing_metrics
 
 MODEL_ID = "baseline.lightgbm"
 
@@ -51,8 +51,8 @@ def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) ->
   y_train = splits.train[target]
   y_test = splits.test[target]
   model = build_model(dataset_cfg.get("lgbm_params"))
-  model.fit(train_df, y_train)
-  predictions = model.predict(test_df)
+  predictions, train_time, predict_time = timed_fit_predict(model, train_df, y_train, test_df)
   metrics = regression_metrics(dataset_name, MODEL_ID, y_test, predictions)
+  metrics.extend(timing_metrics(dataset_name, MODEL_ID, train_time, predict_time))
   predictions_df = build_predictions_frame(splits, dataset_cfg, predictions)
   return TrainingResult(metrics=metrics, predictions=predictions_df)

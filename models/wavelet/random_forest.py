@@ -6,7 +6,13 @@ from typing import Any, Dict
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import Pipeline
 
-from models.base import TrainingResult, build_predictions_frame, regression_metrics
+from models.base import (
+  TrainingResult,
+  build_predictions_frame,
+  regression_metrics,
+  timed_fit_predict,
+  timing_metrics,
+)
 from models.wavelet.common import format_wavelet_stats_markdown, prepare_wavelet_data
 
 MODEL_ID = "wavelet.random_forest"
@@ -30,9 +36,9 @@ def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) ->
     ("pre", prepared.preprocessor),
     ("rf", model),
   ])
-  pipeline.fit(prepared.X_train, prepared.y_train)
-  predictions = pipeline.predict(prepared.X_test)
+  predictions, train_time, predict_time = timed_fit_predict(pipeline, prepared.X_train, prepared.y_train, prepared.X_test)
   metrics = regression_metrics(dataset_name, MODEL_ID, prepared.y_test, predictions)
+  metrics.extend(timing_metrics(dataset_name, MODEL_ID, train_time, predict_time))
   predictions_df = build_predictions_frame(splits, dataset_cfg, predictions)
   extra = format_wavelet_stats_markdown(prepared.wavelet_stats)
   sections = [("Wavelet Detail Coefficients (mean absolute value)", extra)] if extra else None

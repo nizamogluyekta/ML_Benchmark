@@ -7,7 +7,14 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from models.base import TrainingResult, build_predictions_frame, extract_features_and_target, regression_metrics
+from models.base import (
+  TrainingResult,
+  build_predictions_frame,
+  extract_features_and_target,
+  regression_metrics,
+  timed_fit_predict,
+  timing_metrics,
+)
 
 MODEL_ID = "deep.sklearn_mlp"
 
@@ -38,8 +45,8 @@ def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) ->
     raise KeyError("Dataset configuration must include features and target")
   X_train, y_train, X_test, y_test = extract_features_and_target(splits, features, target)
   pipeline = build_model(dataset_cfg.get("deep_sklearn_params"))
-  pipeline.fit(X_train, y_train)
-  predictions = pipeline.predict(X_test)
+  predictions, train_time, predict_time = timed_fit_predict(pipeline, X_train, y_train, X_test)
   metrics = regression_metrics(dataset_name, MODEL_ID, y_test, predictions)
+  metrics.extend(timing_metrics(dataset_name, MODEL_ID, train_time, predict_time))
   predictions_df = build_predictions_frame(splits, dataset_cfg, predictions)
   return TrainingResult(metrics=metrics, predictions=predictions_df)

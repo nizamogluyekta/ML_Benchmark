@@ -33,6 +33,7 @@ Reusable framework for running comparable experiments across multiple ML model f
 - Wavelet models now include SVM/RF/XGB/LightGBM/CatBoost plus scikit-learn, Keras, and PyTorch MLP variants; each consumes the shared preprocessing pipeline so comparisons stay fair.
 - Baseline models cover SVM, Random Forest, XGBoost, LightGBM, CatBoost, scikit-learn shallow + deep MLPs, and a Keras MLP.
 - Optional dependencies (`xgboost`, `lightgbm`, `catboost`, `tensorflow`, `torch`, `matplotlib`, `seaborn`) enable the richer model set and report plots; when missing, the framework logs a clear error for that model and continues with the others.
+- Every run tracks an extended metric suite (RMSE/MAE/MSE/R², MAPE/sMAPE, median & P90 absolute errors, bias, coverage bands, RMSLE, and training/prediction time) and surfaces them in both per-model reports and the aggregate benchmark summary.
 - Utilities and configs were scaffolded from the `VeriBilimi` project plan and can be iteratively refined as datasets and requirements evolve.
 - The legacy VeriBilimi wavelet feature engineering (seasonal/interactions + DWT coefficients) now lives under `utils/wavelet.py` and powers the `models/wavelet/*` implementations.
 - Detailed per-model reports in `reports/<dataset>/<model>/` summarize MSE/RMSE/MAE/R², show month-level errors, and list every prediction with its percentage error. When plotting dependencies are unavailable, the Markdown report records that fact so you know to install `matplotlib` + `seaborn` to unlock the figures.

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict
+from time import perf_counter
 
 try:
   import tensorflow as tf
@@ -14,7 +15,7 @@ else:  # pragma: no cover
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-from models.base import TrainingResult, build_predictions_frame, extract_features_and_target, regression_metrics
+from models.base import TrainingResult, build_predictions_frame, extract_features_and_target, regression_metrics, timing_metrics
 
 MODEL_ID = "keras.mlp"
 
@@ -59,6 +60,7 @@ def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) ->
   callbacks = []
   if params["patience"]:
     callbacks.append(tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=params["patience"], restore_best_weights=True))
+  start = perf_counter()
   model.fit(
     X_train,
     y_train,
@@ -68,7 +70,11 @@ def train(dataset_name: str, dataset_cfg: Dict[str, Any], splits, output_dir) ->
     callbacks=callbacks,
     verbose=0,
   )
+  train_time = perf_counter() - start
+  start = perf_counter()
   predictions = model.predict(X_test, batch_size=params["batch_size"], verbose=0).ravel()
+  predict_time = perf_counter() - start
   metrics = regression_metrics(dataset_name, MODEL_ID, y_test, predictions)
+  metrics.extend(timing_metrics(dataset_name, MODEL_ID, train_time, predict_time))
   predictions_df = build_predictions_frame(splits, dataset_cfg, predictions)
   return TrainingResult(metrics=metrics, predictions=predictions_df)

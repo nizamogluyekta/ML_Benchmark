@@ -8,8 +8,47 @@ from typing import Dict, List, Optional
 import matplotlib.pyplot as plt
 import pandas as pd
 
-LOWER_IS_BETTER = {"mse", "rmse", "mae"}
-DEFAULT_METRICS_ORDER = ["rmse", "mae", "mse", "r2"]
+LOWER_IS_BETTER = {
+  "mse",
+  "rmse",
+  "mae",
+  "mape",
+  "smape",
+  "median_ae",
+  "p90_ae",
+  "rmsle",
+  "train_time_sec",
+  "predict_time_sec",
+}
+TABLE_METRICS = [
+  "rmse",
+  "mae",
+  "mse",
+  "r2",
+  "mape",
+  "smape",
+  "median_ae",
+  "p90_ae",
+  "bias",
+  "coverage_within_5pct",
+  "coverage_within_10pct",
+  "rmsle",
+  "train_time_sec",
+  "predict_time_sec",
+]
+TOP_METRICS = ["rmse", "mae", "mape", "smape", "r2", "coverage_within_5pct"]
+CHART_METRICS = [
+  "rmse",
+  "mae",
+  "mape",
+  "smape",
+  "median_ae",
+  "p90_ae",
+  "coverage_within_5pct",
+  "coverage_within_10pct",
+  "train_time_sec",
+  "predict_time_sec",
+]
 
 
 def _fmt(val: Optional[float]) -> str:
@@ -87,7 +126,7 @@ def generate_benchmark_report(summary_csv: Path, reports_dir: Path, output_path:
     sections.append(f"## Dataset: {dataset}")
 
     pivot = dataset_df.pivot_table(index="model", columns="metric", values="value")
-    pivot = pivot.reindex(columns=DEFAULT_METRICS_ORDER)
+    pivot = pivot.reindex(columns=TABLE_METRICS)
     sections.append("### Metric Table")
     headers = "| Model | " + " | ".join(col.upper() if col is not None else "" for col in pivot.columns) + " |"
     separator = "|" + "---|" * (len(pivot.columns) + 1)
@@ -99,7 +138,7 @@ def generate_benchmark_report(summary_csv: Path, reports_dir: Path, output_path:
     sections.append("")
 
     sections.append("### Top Models")
-    for metric in DEFAULT_METRICS_ORDER:
+    for metric in TOP_METRICS:
       rec = _best_record(metric, dataset_df)
       if rec is None:
         continue
@@ -107,7 +146,7 @@ def generate_benchmark_report(summary_csv: Path, reports_dir: Path, output_path:
       sections.append(f"- **{metric.upper()}** ({direction}): `{rec['model']}` = {_fmt(rec['value'])}")
     sections.append("")
 
-    for metric in DEFAULT_METRICS_ORDER:
+    for metric in CHART_METRICS:
       chart = _plot_metric(dataset, metric, dataset_df, reports_dir)
       if chart:
         rel = _rel(chart, reports_dir)
