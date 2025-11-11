@@ -10,12 +10,18 @@ models:
   - baseline.random_forest
   - baseline.xgboost
   - baseline.lightgbm
+  - baseline.catboost
   - neural.mlp
+  - deep.sklearn_mlp
+  - keras.mlp
   - wavelet.svm
   - wavelet.random_forest
   - wavelet.xgboost
   - wavelet.lightgbm
+  - wavelet.catboost
   - wavelet.neural
+  - wavelet.deep_sklearn
+  - wavelet.keras_mlp
 datasets:
   - solar_reference
 reporting:
