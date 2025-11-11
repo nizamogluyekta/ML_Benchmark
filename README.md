@@ -26,7 +26,7 @@ Reusable framework for running comparable experiments across multiple ML model f
    ```bash
    python scripts/benchmark.py
    ```
-   This now writes, for every dataset/model pair, a `predictions.csv`, `metrics.(csv|json)` and a Markdown report under `reports/<dataset>/<model>/`. If `matplotlib`/`seaborn` are installed the report also includes plots (actual vs predicted curves, scatter, error histograms, etc.).
+   This now writes, for every dataset/model pair, a `predictions.csv`, `metrics.(csv|json)` and a Markdown report under `reports/<dataset>/<model>/`. If `matplotlib`/`seaborn` are installed the report also includes plots (actual vs predicted curves, scatter, error histograms, etc.). An aggregate summary (`reports/benchmark_report.md`) is also generated with cross-model metrics and comparison charts.
 
 ## Notes
 - Model modules currently expect processed CSVs with numeric columns; extend the preprocessing step to apply real feature engineering.

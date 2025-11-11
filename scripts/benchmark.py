@@ -15,6 +15,7 @@ import yaml
 
 from scripts.preprocess import run as preprocess_run
 from scripts.train_model import run_training
+from utils.aggregate_report import generate_benchmark_report
 from utils.reporting import MetricResult, save_metrics_csv
 
 BENCHMARK_CONFIG = ROOT_DIR / "configs/benchmark.yaml"
@@ -52,6 +53,8 @@ def run_benchmark(config_path: Path, reports_dir: Path) -> Path:
 
   summary_file = reports_dir / cfg.get("reporting", {}).get("summary_file", "benchmark_summary.csv")
   save_metrics_csv(all_metrics, summary_file)
+  aggregate_target = reports_dir / cfg.get("reporting", {}).get("summary_report", "benchmark_report.md")
+  generate_benchmark_report(summary_file, reports_dir, aggregate_target)
   return summary_file
 
 
