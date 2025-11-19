@@ -1,4 +1,5 @@
 # Byte-compiled / optimized / DLL files
+.DS_Store
 __pycache__/
 *.py[codz]
 *$py.class
@@ -210,3 +211,10 @@ __marimo__/
 reports/
 data/
 catboost_info/
+
+# Frontend
+ui/node_modules/
+ui/dist/
+ui/dist-ssr/
+ui/*.local
+ui/.npm/

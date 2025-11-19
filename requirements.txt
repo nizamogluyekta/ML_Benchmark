@@ -10,3 +10,6 @@ lightgbm
 torch
 tensorflow
 catboost
+fastapi
+uvicorn
+python-multipart
